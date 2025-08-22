@@ -1,3 +1,5 @@
+#include "Application.hpp"
+
 #include <exception>
 #include <iostream>
 #include <cstdlib>
@@ -5,10 +7,15 @@
 
 class Application {
 public:
-    Application() {}
+    Application();
     void run() {}
     ~Application() {}
 };
+
+Application::Application()
+{
+    log_init(app::logMode, app::logLevel);
+}
 
 
 int main()
