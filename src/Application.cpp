@@ -1,4 +1,5 @@
 #include "Application.hpp"
+#include "AssetManager.hpp"
 
 #include <exception>
 #include <iostream>
@@ -10,9 +11,13 @@ public:
     Application();
     void run() {}
     ~Application() {}
+
+private:
+    AssetManager assets;
 };
 
 Application::Application()
+  : assets(app::workDir)
 {
     log_init(app::logMode, app::logLevel);
 }
@@ -35,6 +40,6 @@ int main()
         std::cerr << "### An unknown error has occured!! ###" << std::endl;
         return EXIT_FAILURE;
     }
-    
+
     return EXIT_SUCCESS;
 }
