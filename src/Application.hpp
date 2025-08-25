@@ -3,10 +3,15 @@
 
 namespace app
 {
-    constexpr LogMode logMode   = LOG_MODE_STDOUT;
-    constexpr LogLevel logLevel = LogLevel::trace;
+    constexpr bool fullscreen = false;
+    constexpr int windowWidth = 1600;
+    constexpr int windowHeight = 900;
+    constexpr const char* windowTitle = "Tiny Universe";
 
     constexpr const char* workDir = "../";
+
+    constexpr LogMode logMode   = LOG_MODE_STDOUT;
+    constexpr LogLevel logLevel = LogLevel::trace;
 }
 
 

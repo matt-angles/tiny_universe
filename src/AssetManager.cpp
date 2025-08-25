@@ -15,34 +15,34 @@
 constexpr size_t maxPathLength = 175;
 
 
-static void pngcall_io_read(png_structp png_ptr, 
-                            png_bytep data, png_size_t length)
+static void pngcall_io_read(png_structp pngFile, 
+                            png_bytep buf, png_size_t size)
 {
-    auto file = (std::ifstream*) (png_get_io_ptr(png_ptr));
+    auto file = (std::ifstream*) (png_get_io_ptr(pngFile));
     try
     {
-        file->read((char*) data, length);
+        file->read((char*) buf, size);
         if (!file->good())
-            png_error(png_ptr, "error reading PNG data");
+            png_error(pngFile, "error reading PNG data");
     } 
     catch (const std::exception& e)
     {
-        png_error(png_ptr, e.what());
+        png_error(pngFile, e.what());
     }
 }
 
-static void pngcall_debug_warn(png_structp png_ptr,
-                               png_const_charp warning_msg)
+static void pngcall_debug_warn(png_structp pngFile,
+                               png_const_charp warnMsg)
 {
-    (void) png_ptr;
-    spdlog::warn("lpng: {}", warning_msg);
+    (void) pngFile;
+    spdlog::warn("lpng: {}", warnMsg);
 }
 
-static void pngcall_debug_error(png_structp png_ptr,
-                                png_const_charp error_msg)
+static void pngcall_debug_error(png_structp pngFile,
+                                png_const_charp errorMsg)
 {
-    (void) png_ptr;
-    throw std::runtime_error("lpng: " + std::string(error_msg));
+    (void) pngFile;
+    throw std::runtime_error("lpng: " + std::string(errorMsg));
 }
 
 std::filesystem::path AssetManager::proc_dir()
