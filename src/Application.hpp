@@ -3,6 +3,8 @@
 
 namespace app
 {
+    constexpr const char* name = "Tiny Universe";
+
     constexpr bool fullscreen = false;
     constexpr int windowWidth = 1600;
     constexpr int windowHeight = 900;
@@ -11,7 +13,7 @@ namespace app
     constexpr const char* workDir = "../";
 
     constexpr LogMode logMode   = LOG_MODE_STDOUT;
-    constexpr LogLevel logLevel = LogLevel::trace;
+    constexpr LogLevel logLevel = LogLevel::info;
 }
 
 

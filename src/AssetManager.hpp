@@ -23,7 +23,7 @@ private:
 
     unsigned char* buf = nullptr;
 
-    Logger logger;
+    Logger logger = Logger("assets");
 };
 
 class ShaderAsset {
@@ -37,7 +37,7 @@ private:
     const char* assetName;
     char* buf = nullptr;
 
-    Logger logger;
+    Logger logger = Logger("assets");
 };
 
 
@@ -53,5 +53,5 @@ private:
     std::filesystem::path proc_dir();
 
     std::filesystem::path dir;
-    Logger logger;
+    Logger logger = Logger("assets");
 };

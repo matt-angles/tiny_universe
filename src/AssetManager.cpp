@@ -78,7 +78,6 @@ std::filesystem::path AssetManager::proc_dir()
 }
 
 AssetManager::AssetManager(const char* baseDir)
-  : logger("assets")
 {
     if (!baseDir)
         dir = proc_dir();
@@ -121,7 +120,7 @@ ShaderAsset AssetManager::get_shader(const char* name)
 
 
 ImageAsset::ImageAsset(const char* filename, const char* assetName)
-  : assetName(assetName), logger("assets")
+  : assetName(assetName)
 {
     auto file = std::ifstream(filename);
     if (!file.is_open())
@@ -197,7 +196,7 @@ void ImageAsset::read_png(const std::ifstream& file)
 
 
 ShaderAsset::ShaderAsset(const char* filename, const char* assetName)
-  : assetName(assetName), logger("assets")
+  : assetName(assetName)
 {
     auto file = std::ifstream(filename);
     if (!file.is_open())
