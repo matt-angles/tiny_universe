@@ -112,8 +112,8 @@ Instance::Instance(uint32_t requiredVersion, uint32_t targetVersion,
 
 Instance::~Instance()
 {
-    if (VKDebugMessenger) vkDestroyDebugUtilsMessengerEXT(VKInstance, VKDebugMessenger, nullptr);
-    if (VKInstance)       vkDestroyInstance(VKInstance, nullptr);
+    vkDestroyDebugUtilsMessengerEXT(VKInstance, VKDebugMessenger, nullptr);
+    vkDestroyInstance(VKInstance, nullptr);
 
     for (uint32_t i=0; i < nExtensions; i++)
         delete extensions[i];
@@ -127,7 +127,7 @@ std::set<std::string> Instance::check_extensions(std::set<std::string> requiredE
     vkEnumerateInstanceExtensionProperties(nullptr, &nAvailableExtensions, nullptr);
     VkExtensionProperties availableExtensions[nAvailableExtensions];
     vk_try(vkEnumerateInstanceExtensionProperties(nullptr, &nAvailableExtensions, availableExtensions),
-           VK_SUCCESS, "failed to retrieve instance extensions");
+           VK_SUCCESS, "could not retrieve instance extensions");
 
     for (uint32_t i=0; i < nAvailableExtensions; i++)
     {

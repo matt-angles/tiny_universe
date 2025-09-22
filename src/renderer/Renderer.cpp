@@ -10,9 +10,12 @@ Renderer::Renderer()
         VK_EXT_DEBUG_UTILS_EXTENSION_NAME
     };
     instance = new Instance(VK_API_VERSION_1_0, VK_API_VERSION_1_4, requiredExtensions, optionalExtensions);
+
+    device = new Device(instance->get(), VK_API_VERSION_1_0);
 }
 
 Renderer::~Renderer()
 {
+    delete device;
     delete instance;
 }

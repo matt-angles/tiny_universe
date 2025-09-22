@@ -105,7 +105,7 @@ ImageAsset AssetManager::get_image(const char* name)
     if (!std::filesystem::exists(path) || !std::filesystem::is_regular_file(path))
         throw std::runtime_error("assets: invalid image file \"" + path.string() + "\"");
 
-    return ImageAsset(path.c_str(), name);
+    return ImageAsset(path.c_str(), name);  // TODO: unportable code!
 }
 
 ShaderAsset AssetManager::get_shader(const char* name)
@@ -115,7 +115,7 @@ ShaderAsset AssetManager::get_shader(const char* name)
     if (!std::filesystem::exists(path) || !std::filesystem::is_regular_file(path))
         throw std::runtime_error("assets: invalid shader file \"" + path.string() + "\"");
 
-    return ShaderAsset(path.c_str(), name);
+    return ShaderAsset(path.c_str(), name); // TODO: unportable code!
 }
 
 

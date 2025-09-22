@@ -18,11 +18,11 @@ public:
 private:
     std::set<std::string> check_extensions(std::set<std::string> requiredExtensions, std::set<std::string> optionalExtensions);
 
-    VkInstance VKInstance = nullptr;
+    VkInstance VKInstance = VK_NULL_HANDLE;
     uint32_t versionNum;
     uint32_t nExtensions;
-    char** extensions = nullptr;
+    char** extensions = VK_NULL_HANDLE;
 
-    VkDebugUtilsMessengerEXT VKDebugMessenger = nullptr;
+    VkDebugUtilsMessengerEXT VKDebugMessenger = VK_NULL_HANDLE;
     Logger logger = Logger("vulkan");
 };

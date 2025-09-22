@@ -17,13 +17,16 @@ inline void vk_try(VkResult result, VkResult expectedResult, const char* errorMs
         throw std::runtime_error(spdlog::fmt_lib::format("vulkan: {} ({})", errorMsg, string_VkResult(result)));
 }
 
+
 // Type conversions
 inline VkDebugUtilsMessageSeverityFlagsEXT VkDebugMessageSeverity_spdlog(spdlog::level::level_enum x)
 {
-    if (x >= spdlog::level::err)   return VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-    if (x >= spdlog::level::warn)  return VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT;
-    if (x >= spdlog::level::debug) return VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT;
-    else                           return VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT;
+    VkDebugUtilsMessageSeverityFlagsEXT y = 0;
+    if (x <= spdlog::level::trace)  y |= VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT;
+    if (x <= spdlog::level::debug)  y |= VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT;
+    if (x <= spdlog::level::warn)   y |= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT;
+    else                            y |= VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+    return y;
 }
 inline spdlog::level::level_enum spdlog_VkDebugMessageSeverity(VkDebugUtilsMessageSeverityFlagsEXT x)
 {
@@ -41,6 +44,18 @@ inline const char* string_VkDebugMessageType(VkDebugUtilsMessageTypeFlagsEXT x)
         case VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT:  return "vkValidator";
         case VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT: return "vkPerf";
         default:                                              return "vkUnknown";
+    }
+}
+
+inline const char* string_VkPhysicalDeviceType2(VkPhysicalDeviceType x)
+{
+    switch (x)
+    {
+        case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:   return "dGPU";
+        case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU: return "iGPU";
+        case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:    return "virt";
+        case VK_PHYSICAL_DEVICE_TYPE_CPU:            return "CPU";
+        default:                                     return "???";
     }
 }
 
