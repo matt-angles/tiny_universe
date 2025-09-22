@@ -9,12 +9,21 @@ Device::Device(VkInstance instance, uint32_t requiredVersion)
 {
     profile = acquire_physical_device(requiredVersion);
 
+    float queuePriority = 1.0f;
+    VkDeviceQueueCreateInfo graphicsQueueInfo {
+        .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .queueFamilyIndex = profile.qFamilyGraphics,
+        .queueCount       = 1,
+        .pQueuePriorities = &queuePriority
+    };
     VkDeviceCreateInfo deviceInfo {
         .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
-        .queueCreateInfoCount = 0,
-        .pQueueCreateInfos    = nullptr,
+        .queueCreateInfoCount = 1,
+        .pQueueCreateInfos    = &graphicsQueueInfo,
         .enabledLayerCount   = 0,       // deprecated
         .ppEnabledLayerNames = nullptr, // deprecated
         .enabledExtensionCount   = 0,
@@ -39,11 +48,26 @@ void Device::fill_profile(DeviceProfile& profile, VkPhysicalDevice device)
     profile.properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
     profile.properties.pNext = nullptr;
     vkGetPhysicalDeviceProperties2(device, &profile.properties);
+
+    uint32_t nQueueFamilies;
+    vkGetPhysicalDeviceQueueFamilyProperties2(device, &nQueueFamilies, nullptr);
+    VkQueueFamilyProperties2 queueFamilies[nQueueFamilies];
+    for (uint32_t i=0; i < nQueueFamilies; i++)
+        queueFamilies[i].sType = VK_STRUCTURE_TYPE_QUEUE_FAMILY_PROPERTIES_2, queueFamilies[i].pNext = nullptr;
+    vkGetPhysicalDeviceQueueFamilyProperties2(device, &nQueueFamilies, queueFamilies);
+    for (uint32_t i=0; i < nQueueFamilies; i++)
+    {
+        auto& qFamilyFlags = queueFamilies[i].queueFamilyProperties.queueFlags;
+        if (qFamilyFlags & VK_QUEUE_GRAPHICS_BIT) profile.qFamilyGraphics = i;
+    }
 }
 
 bool Device::check_profile(const DeviceProfile& profile, uint32_t requiredVersion)
 {
     if (profile.properties.properties.apiVersion < requiredVersion)
+        return false;
+
+    if (profile.qFamilyGraphics == UINT32_MAX)
         return false;
     return true;
 }

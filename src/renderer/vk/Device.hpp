@@ -9,7 +9,14 @@ public:
     Device(VkInstance instance, uint32_t requiredVersion);
     ~Device();
 
-    VkDevice get() { return VKDevice; }
+    VkDevice get() const { return VKDevice; }
+
+    enum class QueueFamily { GRAPHICS };
+    uint32_t get_queue_family(QueueFamily type) const 
+    {
+        if (type == QueueFamily::GRAPHICS) return profile.qFamilyGraphics;
+        throw std::runtime_error("vulkan: invalid queue family type");
+    }
 
 private:
     VkInstance instance = VK_NULL_HANDLE;
@@ -17,6 +24,8 @@ private:
     struct DeviceProfile {
         VkPhysicalDevice handle;
         VkPhysicalDeviceProperties2 properties;
+
+        uint32_t qFamilyGraphics = UINT32_MAX;
     } profile;
     VkDevice VKDevice;
 
