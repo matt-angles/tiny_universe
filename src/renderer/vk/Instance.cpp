@@ -116,8 +116,8 @@ Instance::~Instance()
     vkDestroyInstance(VKInstance, nullptr);
 
     for (uint32_t i=0; i < nExtensions; i++)
-        delete extensions[i];
-    delete extensions;
+        delete[] extensions[i];
+    delete[] extensions;
 }
 
 

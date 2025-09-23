@@ -21,7 +21,7 @@ private:
     VkInstance VKInstance = VK_NULL_HANDLE;
     uint32_t versionNum;
     uint32_t nExtensions;
-    char** extensions = VK_NULL_HANDLE;
+    char** extensions = nullptr;
 
     VkDebugUtilsMessengerEXT VKDebugMessenger = VK_NULL_HANDLE;
     Logger logger = Logger("vulkan");

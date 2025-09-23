@@ -1,6 +1,8 @@
 #pragma once
 #include "./Device.hpp"
+#include "logging.hpp"
 
+#include <vulkan/vulkan.h>
 
 class Command {
 public:

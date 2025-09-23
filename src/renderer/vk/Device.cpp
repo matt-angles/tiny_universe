@@ -4,10 +4,11 @@
 #include <GLFW/glfw3.h>
 
 
-Device::Device(VkInstance instance, uint32_t requiredVersion)
+Device::Device(VkInstance instance, uint32_t requiredVersion,
+               const std::set<std::string>& requiredExtensions, const std::set<std::string>& optionalExtensions)
   : instance(instance)
 {
-    profile = acquire_physical_device(requiredVersion);
+    profile = acquire_physical_device(requiredVersion, requiredExtensions, optionalExtensions);
 
     float queuePriority = 1.0f;
     VkDeviceQueueCreateInfo graphicsQueueInfo {
@@ -26,17 +27,26 @@ Device::Device(VkInstance instance, uint32_t requiredVersion)
         .pQueueCreateInfos    = &graphicsQueueInfo,
         .enabledLayerCount   = 0,       // deprecated
         .ppEnabledLayerNames = nullptr, // deprecated
-        .enabledExtensionCount   = 0,
-        .ppEnabledExtensionNames = nullptr,
+        .enabledExtensionCount   = nExtensions,
+        .ppEnabledExtensionNames = extensions,
         .pEnabledFeatures = nullptr     // deprecated
     };
     vk_try(vkCreateDevice(profile.handle, &deviceInfo, nullptr, &VKDevice),
            "failed to create logical device");
     logger.info("created logical device");
+    if (nExtensions)
+    {
+        logger.info("loaded {} extensions:", nExtensions);
+        for (uint32_t i=0; i < nExtensions; i++)
+            logger.info("\t{}", extensions[i]);
+    }
 }
 
 Device::~Device()
 {
+    for (uint32_t i=0; i < nExtensions; i++)
+        delete[] extensions[i];
+    delete[] extensions;
     vkDestroyDevice(VKDevice, nullptr);
 }
 
@@ -60,15 +70,28 @@ void Device::fill_profile(DeviceProfile& profile, VkPhysicalDevice device)
         auto& qFamilyFlags = queueFamilies[i].queueFamilyProperties.queueFlags;
         if (qFamilyFlags & VK_QUEUE_GRAPHICS_BIT) profile.qFamilyGraphics = i;
     }
+
+    profile._nAvlExtensions = new uint32_t;
+    vkEnumerateDeviceExtensionProperties(device, nullptr, profile._nAvlExtensions, nullptr);
+    profile._avlExtensions = new VkExtensionProperties[*profile._nAvlExtensions];
+    vk_try(vkEnumerateDeviceExtensionProperties(device, nullptr, profile._nAvlExtensions, profile._avlExtensions),
+           VK_SUCCESS, "failed to retrieve device extensions");
 }
 
-bool Device::check_profile(const DeviceProfile& profile, uint32_t requiredVersion)
+bool Device::check_profile(const DeviceProfile& profile, uint32_t requiredVersion,
+                           std::set<std::string> requiredExtensions)
 {
     if (profile.properties.properties.apiVersion < requiredVersion)
         return false;
 
     if (profile.qFamilyGraphics == UINT32_MAX)
         return false;
+
+    for (uint32_t i=0; i < *profile._nAvlExtensions; i++)
+        requiredExtensions.erase(profile._avlExtensions[i].extensionName);
+    if (!requiredExtensions.empty())
+        return false;
+
     return true;
 }
 
@@ -94,7 +117,9 @@ void Device::log_profile(const DeviceProfile& profile, uint32_t index)
 
 
 // TODO: dynamically allocate Device::DeviceProfile and return a pointer here to avoid an unecessary copy
-Device::DeviceProfile Device::acquire_physical_device(uint32_t requiredVersion)
+Device::DeviceProfile Device::acquire_physical_device(uint32_t requiredVersion,
+                                                      const std::set<std::string>& requiredExtensions,
+                                                      const std::set<std::string>& optionalExtensions)
 {
     uint32_t nDevices;
     vkEnumeratePhysicalDevices(instance, &nDevices, nullptr);
@@ -111,7 +136,7 @@ Device::DeviceProfile Device::acquire_physical_device(uint32_t requiredVersion)
     {
         fill_profile(profiles[i], devices[i]);
         log_profile(profiles[i], i);
-        if (check_profile(profiles[i], requiredVersion))
+        if (check_profile(profiles[i], requiredVersion, requiredExtensions))
         {
             int profileScore = score_profile(profiles[i]);
             if (profileScore > bestScore)
@@ -120,9 +145,40 @@ Device::DeviceProfile Device::acquire_physical_device(uint32_t requiredVersion)
             }
         }
     }
-
     if (bestProfile < 0)
         throw std::runtime_error("vulkan: no supported device found");
+
+    auto missingExtensions = optionalExtensions;
+    for (uint32_t i=0; i < *profiles[bestProfile]._nAvlExtensions; i++)
+        missingExtensions.erase(profiles[bestProfile]._avlExtensions[i].extensionName);
+    nExtensions = requiredExtensions.size() + optionalExtensions.size() - missingExtensions.size();
+    extensions = new char*[nExtensions]; uint32_t i=0;
+    for (const std::string& extension : requiredExtensions)
+    {
+        extensions[i] = new char[extension.length()+1];
+        strcpy(extensions[i++], extension.c_str());
+    }
+    for (const std::string& extension : optionalExtensions)
+        if (!missingExtensions.count(extension))
+        {
+            extensions[i] = new char[extension.length()+1];
+            strcpy(extensions[i++], extension.c_str());
+        }
+
+    for (uint32_t i=0; i < nDevices; i++)
+    {
+        delete profiles[i]._nAvlExtensions;
+        delete[] profiles[i]._avlExtensions;
+    }
     logger.info("selected device {}", bestProfile);
     return profiles[bestProfile];
+}
+
+
+bool Device::has_extension(const char* name) const
+{
+    for (uint32_t i=0; i < nExtensions; i++)
+        if (!strcmp(extensions[i], name))
+            return true;
+    return false;
 }
