@@ -18,6 +18,7 @@ set(SOURCE
     src/renderer/vk/Instance.cpp
     src/renderer/vk/Device.cpp
     src/renderer/vk/Command.cpp
+    src/renderer/vk/Swapchain.cpp
     src/logging.cpp)
 add_executable(tiny_universe ${SOURCE})
 target_compile_options(tiny_universe PRIVATE -Wall -Wextra -Werror -Wno-error)

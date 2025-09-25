@@ -1,5 +1,4 @@
 #include "./Device.hpp"
-#include "./utils.hpp"
 
 #include <GLFW/glfw3.h>
 
@@ -10,21 +9,26 @@ Device::Device(VkInstance instance, uint32_t requiredVersion,
 {
     profile = acquire_physical_device(requiredVersion, requiredExtensions, optionalExtensions);
 
-    float queuePriority = 1.0f;
-    VkDeviceQueueCreateInfo graphicsQueueInfo {
-        .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .queueFamilyIndex = profile.qFamilyGraphics,
-        .queueCount       = 1,
-        .pQueuePriorities = &queuePriority
-    };
+    float defaultQueuePriority = 1.0f;
+    VkDeviceQueueCreateInfo queueInfos[2];
+    for (size_t i=0; i < std::size(queueInfos); i++)
+    {
+        queueInfos[i].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queueInfos[i].pNext = nullptr,
+        queueInfos[i].flags = 0;
+        queueInfos[i].queueCount = 1;
+        queueInfos[i].pQueuePriorities = &defaultQueuePriority;
+    }
+    queueInfos[0].queueFamilyIndex = profile.qFamilyGraphics;
+    queueInfos[1].queueFamilyIndex = profile.qFamilyPresent;
+
     VkDeviceCreateInfo deviceInfo {
         .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
-        .queueCreateInfoCount = 1,
-        .pQueueCreateInfos    = &graphicsQueueInfo,
+        .queueCreateInfoCount = profile.qFamilyGraphics == profile.qFamilyPresent
+                              ? 1U : 2U,
+        .pQueueCreateInfos    = queueInfos,
         .enabledLayerCount   = 0,       // deprecated
         .ppEnabledLayerNames = nullptr, // deprecated
         .enabledExtensionCount   = nExtensions,
@@ -69,6 +73,7 @@ void Device::fill_profile(DeviceProfile& profile, VkPhysicalDevice device)
     {
         auto& qFamilyFlags = queueFamilies[i].queueFamilyProperties.queueFlags;
         if (qFamilyFlags & VK_QUEUE_GRAPHICS_BIT) profile.qFamilyGraphics = i;
+        if (glfwGetPhysicalDevicePresentationSupport(instance, device, i)) profile.qFamilyPresent = i;
     }
 
     profile._nAvlExtensions = new uint32_t;
@@ -84,7 +89,8 @@ bool Device::check_profile(const DeviceProfile& profile, uint32_t requiredVersio
     if (profile.properties.properties.apiVersion < requiredVersion)
         return false;
 
-    if (profile.qFamilyGraphics == UINT32_MAX)
+    if (profile.qFamilyGraphics == UINT32_MAX ||
+        profile.qFamilyPresent  == UINT32_MAX)
         return false;
 
     for (uint32_t i=0; i < *profile._nAvlExtensions; i++)

@@ -1,7 +1,7 @@
 #include "Renderer.hpp"
 
 
-Renderer::Renderer()
+Renderer::Renderer(GLFWwindow* window)
 {
     std::set<std::string> requiredInstanceExtensions = {
 
@@ -12,7 +12,7 @@ Renderer::Renderer()
     instance = new Instance(VK_API_VERSION_1_0, VK_API_VERSION_1_4, requiredInstanceExtensions, optionalInstanceExtensions);
 
     std::set<std::string> requiredDeviceExtensions = {
-
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME
     };
     std::set<std::string> optionalDeviceExtensions = {
 
@@ -21,10 +21,14 @@ Renderer::Renderer()
 
     command = new Command(device);
     command->allocate_buffers(1);
+
+    swapchain = new Swapchain(window, instance, device);
 }
 
 Renderer::~Renderer()
 {
+    delete swapchain;
+    delete command;
     delete device;
     delete instance;
 }
