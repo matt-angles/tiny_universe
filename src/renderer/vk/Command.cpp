@@ -28,7 +28,8 @@ Command::~Command()
 
 void Command::allocate_buffers(uint32_t nBuffers)
 {
-    vkFreeCommandBuffers(device->get(), VKCommandPool, nCmdBufs, cmdBufs);
+    if (nCmdBufs)
+        vkFreeCommandBuffers(device->get(), VKCommandPool, nCmdBufs, cmdBufs);
     nCmdBufs = nBuffers;
     delete[] cmdBufs; cmdBufs = new VkCommandBuffer[nCmdBufs];
 
@@ -58,7 +59,7 @@ VkCommandBuffer Command::record(uint32_t index)
     };
     vk_try(vkBeginCommandBuffer(cmdBufs[index], &recordInfo),
            fmt::format("init failed for command buffer {} [graphics]", index).c_str());
-    
+
     return cmdBufs[index];
 }
 
@@ -70,7 +71,7 @@ void Command::submit(uint32_t index)
         throw std::runtime_error("vulkan: invalid command buffer index [graphics]");
     vk_try(vkEndCommandBuffer(cmdBufs[index]),
            fmt::format("recording failed for command buffer {} [graphics]", index).c_str());
-    
+
     VkSubmitInfo submitInfo {
         .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
         .pNext = nullptr,

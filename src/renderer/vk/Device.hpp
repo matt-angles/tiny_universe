@@ -46,6 +46,7 @@ private:
     struct DeviceProfile {
         VkPhysicalDevice handle;
         VkPhysicalDeviceProperties2 properties;
+        VkPhysicalDeviceFeatures2 features;
         uint32_t qFamilyGraphics = UINT32_MAX;
         uint32_t qFamilyPresent  = UINT32_MAX;
 

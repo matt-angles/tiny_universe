@@ -13,6 +13,8 @@ public:
     uint32_t acquire_img();
     void present_img(uint32_t);
 
+    VkFormat get_sformat() const { return curFormat; }
+
 private:
     VkSurfaceFormatKHR request_sformat(VkFormat rFormat, VkColorSpaceKHR rColorSpace);
     VkPresentModeKHR request_smode(VkPresentModeKHR rMode);
@@ -24,6 +26,7 @@ private:
     VkSurfaceKHR VKSurface = VK_NULL_HANDLE;
     VkSurfaceCapabilitiesKHR VKSurfaceCapabilities;
     uint32_t nFormats;
+    VkFormat curFormat;
     VkSurfaceFormatKHR* formats;
     uint32_t nModes;
     VkPresentModeKHR* modes;

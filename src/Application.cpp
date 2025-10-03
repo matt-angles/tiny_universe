@@ -72,7 +72,7 @@ Application::Application()
         glfwSetWindowIcon(window, 1, &windowIconInfo);
 
 
-    renderer = new Renderer(window);
+    renderer = new Renderer(window, assets);
 }
 
 void Application::run()

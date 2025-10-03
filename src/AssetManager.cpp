@@ -99,7 +99,7 @@ AssetManager::AssetManager(const char* baseDir)
     logger.debug("setting up in path {}", dir.string());
 }
 
-ImageAsset AssetManager::get_image(const char* name)
+ImageAsset AssetManager::get_image(const char* name) const
 {
     auto path = dir / "assets/images" / name;
     if (!std::filesystem::exists(path) || !std::filesystem::is_regular_file(path))
@@ -108,10 +108,10 @@ ImageAsset AssetManager::get_image(const char* name)
     return ImageAsset(path.c_str(), name);  // TODO: unportable code!
 }
 
-ShaderAsset AssetManager::get_shader(const char* name)
+ShaderAsset AssetManager::get_shader(const char* name) const
 {
     auto fullName = name + std::string(".spv");
-    auto path = dir / "assets/shaders/" / fullName;
+    auto path = dir / "shaderc/" / fullName;
     if (!std::filesystem::exists(path) || !std::filesystem::is_regular_file(path))
         throw std::runtime_error("assets: invalid shader file \"" + path.string() + "\"");
 
@@ -166,7 +166,7 @@ void ImageAsset::read_png(const std::ifstream& file)
     png_read_info(pngFile, pngInfo);
     png_byte pngBitDepth = png_get_bit_depth(pngFile, pngInfo);
     png_byte pngColorType = png_get_color_type(pngFile, pngInfo);
-    
+
     // Transform into an R8G8B8A8_SRGB image
     png_set_expand(pngFile);
     if (pngBitDepth == 16)
@@ -198,15 +198,15 @@ void ImageAsset::read_png(const std::ifstream& file)
 ShaderAsset::ShaderAsset(const char* filename, const char* assetName)
   : assetName(assetName)
 {
-    auto file = std::ifstream(filename);
+    auto file = std::ifstream(filename, std::ios::ate);
     if (!file.is_open())
         throw std::runtime_error("failed to open file \"" + std::string(filename) + "\"");
     logger.trace("opened file {}", filename);
 
-    size_t fileSize = file.tellg(); file.seekg(0);
-    buf = new char[fileSize];
+    bufSize = file.tellg(); file.seekg(0);
+    buf = new char[bufSize];
 
-    file.read(buf, fileSize);
+    file.read(buf, bufSize);
     if (!file.good())
         throw std::runtime_error("failed to load asset " + std::string(assetName));
     logger.trace("loaded asset " + std::string(assetName));

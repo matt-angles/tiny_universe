@@ -5,7 +5,7 @@
 #include <vulkan/vk_enum_string_helper.h>
 
 
-// Error handling
+// Helper functions
 inline void vk_try(VkResult result, const char* errorMsg)
 {
     if (result < 0)
@@ -17,6 +17,25 @@ inline void vk_try(VkResult result, VkResult expectedResult, const char* errorMs
         throw std::runtime_error(spdlog::fmt_lib::format("vulkan: {} ({})", errorMsg, string_VkResult(result)));
 }
 
+inline void* vk_get_chain(void* voidPtr, VkStructureType x)
+{
+    auto* ptr = (VkBaseOutStructure*) voidPtr;
+    while (ptr && ptr->sType != x)
+        ptr = ptr->pNext;
+    return ptr;
+}
+inline void vk_free_chain(void* voidPtr)
+{
+    auto* ptr = (VkBaseOutStructure*) voidPtr;
+    VkBaseOutStructure* oldPtr;
+    while (ptr)
+    {
+        oldPtr = ptr;
+        ptr = ptr->pNext;
+        delete oldPtr;
+    }
+}
+
 
 // Type conversions
 inline VkDebugUtilsMessageSeverityFlagsEXT VkDebugMessageSeverity_spdlog(spdlog::level::level_enum x)
@@ -25,7 +44,7 @@ inline VkDebugUtilsMessageSeverityFlagsEXT VkDebugMessageSeverity_spdlog(spdlog:
     if (x <= spdlog::level::trace)  y |= VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT;
     if (x <= spdlog::level::debug)  y |= VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT;
     if (x <= spdlog::level::warn)   y |= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT;
-    else                            y |= VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+    if (x <= spdlog::level::err)    y |= VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
     return y;
 }
 inline spdlog::level::level_enum spdlog_VkDebugMessageSeverity(VkDebugUtilsMessageSeverityFlagsEXT x)

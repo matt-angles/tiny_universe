@@ -31,10 +31,12 @@ public:
     ShaderAsset(const char* filename, const char* assetName);
     ~ShaderAsset();
 
-    char* get() { return buf; }
+    char* get() const { return buf; }
+    size_t get_size() const { return bufSize; }
 
 private:
     const char* assetName;
+    size_t bufSize = 0;
     char* buf = nullptr;
 
     Logger logger = Logger("assets");
@@ -46,8 +48,8 @@ public:
     AssetManager(const char* baseDir = nullptr);
     ~AssetManager() {}
 
-    ImageAsset get_image(const char* name);
-    ShaderAsset get_shader(const char* name);
+    ImageAsset get_image(const char* name) const;
+    ShaderAsset get_shader(const char* name) const;
 
 private:
     std::filesystem::path proc_dir();

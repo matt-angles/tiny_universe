@@ -1,5 +1,6 @@
 # CMake
 build/
+shaderc/
 
 # Visual Studio Code
 .vscode/

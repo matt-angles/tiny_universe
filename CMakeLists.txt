@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.11)
 project(tiny_universe VERSION 0.0
         DESCRIPTION "2D hardware-accelerated universe"
         LANGUAGES C CXX)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED true)
 
 find_package(Vulkan REQUIRED)
@@ -19,6 +19,8 @@ set(SOURCE
     src/renderer/vk/Device.cpp
     src/renderer/vk/Command.cpp
     src/renderer/vk/Swapchain.cpp
+    src/renderer/vk/PipelineFactory.cpp
+    src/renderer/vk/Pipeline.cpp
     src/logging.cpp)
 add_executable(tiny_universe ${SOURCE})
 target_compile_options(tiny_universe PRIVATE -Wall -Wextra -Werror -Wno-error)
@@ -26,3 +28,22 @@ target_compile_definitions(tiny_universe PRIVATE -DCMAKE_PROJECT_VERSION_MAJOR=$
                                                  -DCMAKE_PROJECT_VERSION_MINOR=${PROJECT_VERSION_MINOR})
 target_include_directories(tiny_universe PRIVATE src/)
 target_link_libraries(tiny_universe PRIVATE vulkan glfw glm::glm PNG::PNG spdlog::spdlog)
+
+set(SHADERS
+    shader/default.vert.glsl)
+set(SHADERC "")
+
+foreach(SHADER_INPUT ${SHADERS})
+    get_filename_component(SHADER_BASENAME ${SHADER_INPUT} NAME_WLE)
+    set(SHADER_OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/shaderc/${SHADER_BASENAME}.spv")
+
+    add_custom_command(OUTPUT ${SHADER_OUTPUT}
+                       COMMAND glslangValidator -V ${CMAKE_CURRENT_SOURCE_DIR}/${SHADER_INPUT} -o ${SHADER_OUTPUT}
+                       DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${SHADER_INPUT}
+                       COMMENT "Compiling GLSL shader \"${SHADER_BASENAME}\""
+                       VERBATIM
+    )
+
+    list(APPEND SHADERC ${SHADER_OUTPUT})
+endforeach()
+add_custom_target(tiny_universe_shaders ALL DEPENDS ${SHADERC})

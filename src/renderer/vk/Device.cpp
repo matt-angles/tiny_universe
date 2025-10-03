@@ -24,7 +24,7 @@ Device::Device(VkInstance instance, uint32_t requiredVersion,
 
     VkDeviceCreateInfo deviceInfo {
         .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-        .pNext = nullptr,
+        .pNext = &profile.features,
         .flags = 0,
         .queueCreateInfoCount = profile.qFamilyGraphics == profile.qFamilyPresent
                               ? 1U : 2U,
@@ -51,6 +51,7 @@ Device::~Device()
     for (uint32_t i=0; i < nExtensions; i++)
         delete[] extensions[i];
     delete[] extensions;
+    vk_free_chain(profile.features.pNext);
     vkDestroyDevice(VKDevice, nullptr);
 }
 
@@ -62,6 +63,14 @@ void Device::fill_profile(DeviceProfile& profile, VkPhysicalDevice device)
     profile.properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
     profile.properties.pNext = nullptr;
     vkGetPhysicalDeviceProperties2(device, &profile.properties);
+
+    auto* features4 = new VkPhysicalDeviceVulkan14Features {};
+    features4->sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_FEATURES;
+    features4->pNext = nullptr;
+    auto* features3 = new VkPhysicalDeviceVulkan13Features {};
+    features3->sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
+    features3->pNext = features4;
+    profile.features = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2, features3, {}};
 
     uint32_t nQueueFamilies;
     vkGetPhysicalDeviceQueueFamilyProperties2(device, &nQueueFamilies, nullptr);
@@ -83,11 +92,39 @@ void Device::fill_profile(DeviceProfile& profile, VkPhysicalDevice device)
            VK_SUCCESS, "failed to retrieve device extensions");
 }
 
+#define ENABLE_REQUIRED_1_3_FEATURE(name) {                                     \
+    auto* pSub = (VkPhysicalDeviceVulkan13Features*)    \
+        vk_get_chain(profile.features.pNext, VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES);\
+    if (!_avlFeatures3.name)                                                    \
+        return false;                                                           \
+    pSub->name = VK_TRUE;                                                       \
+}
+#define ENABLE_REQUIRED_1_4_FEATURE(name) {                                     \
+    auto* pSub = (VkPhysicalDeviceVulkan14Features*)    \
+        vk_get_chain(profile.features.pNext, VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_FEATURES);\
+    if (!_avlFeatures4.name)                                                    \
+        return false;                                                           \
+    pSub->name = VK_TRUE;                                                       \
+}
 bool Device::check_profile(const DeviceProfile& profile, uint32_t requiredVersion,
                            std::set<std::string> requiredExtensions)
 {
     if (profile.properties.properties.apiVersion < requiredVersion)
         return false;
+
+    VkPhysicalDeviceVulkan14Features _avlFeatures4;
+    _avlFeatures4.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_FEATURES; 
+    _avlFeatures4.pNext = nullptr;
+    VkPhysicalDeviceVulkan13Features _avlFeatures3;
+    _avlFeatures3.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES; 
+    _avlFeatures3.pNext = &_avlFeatures4;
+    VkPhysicalDeviceFeatures2 _avlFeatures;
+    _avlFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+    _avlFeatures.pNext = &_avlFeatures3;
+    vkGetPhysicalDeviceFeatures2(profile.handle, &_avlFeatures);
+
+    ENABLE_REQUIRED_1_3_FEATURE(dynamicRendering)
+    ENABLE_REQUIRED_1_4_FEATURE(maintenance5)
 
     if (profile.qFamilyGraphics == UINT32_MAX ||
         profile.qFamilyPresent  == UINT32_MAX)

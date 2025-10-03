@@ -63,6 +63,7 @@ Swapchain::Swapchain(GLFWwindow* window, Instance* instance, Device* device)
         .clipped = VK_TRUE,
         .oldSwapchain = VK_NULL_HANDLE
     };
+    curFormat = swapchainInfo.imageFormat;
     vk_try(vkCreateSwapchainKHR(device->get(), &swapchainInfo, nullptr, &VKSwapchain),
            "failed to create swapchain");
     logger.info("created swapchain");
@@ -79,7 +80,7 @@ Swapchain::~Swapchain()
 {
     delete[] images;
     vkDestroySwapchainKHR(device->get(), VKSwapchain, nullptr);
-    
+
     delete[] modes;
     delete[] formats;
     vkDestroySurfaceKHR(instance->get(), VKSurface, nullptr);
