@@ -23,14 +23,15 @@ set(SOURCE
     src/renderer/vk/Pipeline.cpp
     src/logging.cpp)
 add_executable(tiny_universe ${SOURCE})
-target_compile_options(tiny_universe PRIVATE -Wall -Wextra -Werror -Wno-error)
+target_compile_options(tiny_universe PRIVATE -Wall -Wextra -Werror)
 target_compile_definitions(tiny_universe PRIVATE -DCMAKE_PROJECT_VERSION_MAJOR=${PROJECT_VERSION_MAJOR}
                                                  -DCMAKE_PROJECT_VERSION_MINOR=${PROJECT_VERSION_MINOR})
 target_include_directories(tiny_universe PRIVATE src/)
 target_link_libraries(tiny_universe PRIVATE vulkan glfw glm::glm PNG::PNG spdlog::spdlog)
 
 set(SHADERS
-    shader/default.vert.glsl)
+    shader/default.vert.glsl
+    shader/default.frag.glsl)
 set(SHADERC "")
 
 foreach(SHADER_INPUT ${SHADERS})

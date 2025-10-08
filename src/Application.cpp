@@ -79,6 +79,7 @@ void Application::run()
 {
     while (!glfwWindowShouldClose(window))
     {
+        renderer->present();
         glfwPollEvents();
     }
 }

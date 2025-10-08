@@ -8,6 +8,8 @@ public:
     Pipeline(Device* device, VkGraphicsPipelineCreateInfo* cfg, VkPipelineLayoutCreateInfo* lyt);
     ~Pipeline();
 
+    VkPipeline get() const { return VKPipeline; }
+
 private:
     Device* device;
 

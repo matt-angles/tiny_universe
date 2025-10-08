@@ -12,7 +12,7 @@ public:
     void allocate_buffers(uint32_t nBuffers);
 
     VkCommandBuffer record(uint32_t index);
-    void submit(uint32_t index);
+    void submit(uint32_t index, VkSemaphore sigPreSubmit, VkSemaphore semaphorePostSubmit, VkFence fencePostSubmit);
 
 private:
     Device* device = nullptr;

@@ -1,8 +1,8 @@
 #include "./PipelineFactory.hpp"
 
 
-PipelineFactory::PipelineFactory(Swapchain* swapchain, const ShaderAsset& vertexShader)
-  : shaders(), dynamicStates({VK_DYNAMIC_STATE_VIEWPORT,VK_DYNAMIC_STATE_SCISSOR})
+PipelineFactory::PipelineFactory(Swapchain* swapchain, const ShaderAsset* vertexShader)
+  : dynamicStates({VK_DYNAMIC_STATE_VIEWPORT,VK_DYNAMIC_STATE_SCISSOR})
 {
     cfg = new VkGraphicsPipelineCreateInfo {};
     cfg->sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -140,7 +140,7 @@ PipelineFactory::PipelineFactory(Swapchain* swapchain, const ShaderAsset& vertex
 }
 
 PipelineFactory::PipelineFactory(Swapchain* swapchain, 
-                                 const ShaderAsset& vertexShader, const ShaderAsset& fragmentShader)
+                                 const ShaderAsset* vertexShader, const ShaderAsset* fragmentShader)
   : PipelineFactory(swapchain, vertexShader)
 {
     add_shader(fragmentShader, VK_SHADER_STAGE_FRAGMENT_BIT);
@@ -154,8 +154,8 @@ Pipeline PipelineFactory::build(Device* device)
 
 PipelineFactory::~PipelineFactory()
 {
-    for (auto shader : shaders)
-        delete (VkShaderModuleCreateInfo*) shader.pNext;
+    for (auto cfg : shaderCfgs)
+        delete (VkShaderModuleCreateInfo*) cfg.pNext;
 
     delete lyt;
     delete cfg->pDynamicState;
@@ -172,7 +172,7 @@ PipelineFactory::~PipelineFactory()
 }
 
 
-void PipelineFactory::add_shader(const ShaderAsset& shader, VkShaderStageFlagBits type)
+void PipelineFactory::add_shader(const ShaderAsset* shader, VkShaderStageFlagBits type)
 {
     VkPipelineShaderStageCreateInfo shaderInfo {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
@@ -187,13 +187,13 @@ void PipelineFactory::add_shader(const ShaderAsset& shader, VkShaderStageFlagBit
         .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
-        .codeSize = shader.get_size(),
-        .pCode    = (uint32_t*) shader.get()
+        .codeSize = shader->get_size(),
+        .pCode    = (uint32_t*) shader->get()
     };
-    shaders.push_back(shaderInfo);
+    shaderCfgs.push_back(shaderInfo);
 
-    cfg->stageCount = shaders.size();
-    cfg->pStages = shaders.data();
+    cfg->stageCount = shaderCfgs.size();
+    cfg->pStages = shaderCfgs.data();
 }
 
 void PipelineFactory::set_topology(VkPrimitiveTopology type)

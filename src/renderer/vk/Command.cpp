@@ -65,24 +65,26 @@ VkCommandBuffer Command::record(uint32_t index)
 
 // This function assumes the command buffer to be in the recording state (through Command::record()).
 // This is ONLY enforced by the validation layer, so misuse will provoke undefined behaviour.
-void Command::submit(uint32_t index)
+void Command::submit(uint32_t index, VkSemaphore sigPreSubmit, 
+                     VkSemaphore semaphorePostSubmit, VkFence fencePostSubmit)
 {
     if (index >= nCmdBufs)
         throw std::runtime_error("vulkan: invalid command buffer index [graphics]");
     vk_try(vkEndCommandBuffer(cmdBufs[index]),
            fmt::format("recording failed for command buffer {} [graphics]", index).c_str());
 
+    VkPipelineStageFlags waitStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
     VkSubmitInfo submitInfo {
         .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
         .pNext = nullptr,
-        .waitSemaphoreCount = 0,
-        .pWaitSemaphores    = nullptr,
-        .pWaitDstStageMask = nullptr,
+        .waitSemaphoreCount = 1,
+        .pWaitSemaphores    = &sigPreSubmit,
+        .pWaitDstStageMask = &waitStage,
         .commandBufferCount = 1,
         .pCommandBuffers    = &cmdBufs[index],
-        .signalSemaphoreCount = 0,
-        .pSignalSemaphores    = nullptr
+        .signalSemaphoreCount = 1,
+        .pSignalSemaphores    = &semaphorePostSubmit
     };
-    vk_try(vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE),
+    vk_try(vkQueueSubmit(graphicsQueue, 1, &submitInfo, fencePostSubmit),
            fmt::format("submission failed for command buffer {} [graphics]", index).c_str());
 }
