@@ -15,12 +15,14 @@ set(SOURCE
     src/Application.cpp
     src/AssetManager.cpp
     src/renderer/Renderer.cpp
+    src/renderer/Mesh.cpp
     src/renderer/vk/Instance.cpp
     src/renderer/vk/Device.cpp
     src/renderer/vk/Command.cpp
     src/renderer/vk/Swapchain.cpp
     src/renderer/vk/PipelineFactory.cpp
     src/renderer/vk/Pipeline.cpp
+    src/renderer/vk/Buffer.cpp
     src/logging.cpp)
 add_executable(tiny_universe ${SOURCE})
 target_compile_options(tiny_universe PRIVATE -Wall -Wextra -Werror)

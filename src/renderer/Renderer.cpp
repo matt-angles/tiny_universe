@@ -37,11 +37,15 @@ Renderer::Renderer(GLFWwindow* window, const AssetManager& assets)
     for (uint32_t i=0; i < swapchain->get_image_count(); i++)
         vkCreateSemaphore(device->get(), &semaphoreInfo, nullptr, sigImageAvailable+i);
     vkCreateFence(device->get(), &fenceInfo, nullptr, &sigImageRendered);
+
+    vertexBuffer = new Buffer(device, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, sizeof(Vector2D)*25);
 }
 
 Renderer::~Renderer()
 {
     vkDeviceWaitIdle(device->get());
+
+    delete vertexBuffer;
 
     for (uint32_t i=0; i < swapchain->get_image_count(); i++)
         vkDestroySemaphore(device->get(), sigImageAvailable[i], nullptr);
@@ -55,6 +59,11 @@ Renderer::~Renderer()
     delete instance;
 }
 
+
+void Renderer::add(ViewObject* obj)
+{
+    scene.push_back(obj);
+}
 
 void Renderer::present()
 {
@@ -105,7 +114,22 @@ void Renderer::present()
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, defaultPipeline->get());
     vkCmdSetViewport(cmd, 0, 1, &viewport);
     vkCmdSetScissor(cmd, 0, 1, &scissor);
-    vkCmdDraw(cmd, 3, 1, 0, 0);
+
+    Vector2D* vertexBufferPtr = (Vector2D*) vertexBuffer->map();
+    Vector2D* vertexBufferPtrMax = vertexBufferPtr + vertexBuffer->get_size()*sizeof(Vector2D);
+    uint32_t nVertexDrawn = 0;
+    for (ViewObject* obj : scene)
+    {
+        if (vertexBufferPtr >= vertexBufferPtrMax)
+            throw std::runtime_error("vulkan: vertex buffer overflow!");    // TODO: reallocate buffer dynamically
+        nVertexDrawn += obj->get_mesh()->fill_bufs(vertexBufferPtr);
+    }
+    vertexBuffer->unmap();
+
+    VkBuffer _buf = vertexBuffer->get();
+    VkDeviceSize _offset = 0;
+    vkCmdBindVertexBuffers(cmd, 0, 1, &_buf, &_offset);
+    vkCmdDraw(cmd, nVertexDrawn, 1, 0, 0);
 
     vkCmdEndRendering(cmd);
     swapchain->transition_img(cmd, imageIndex, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);

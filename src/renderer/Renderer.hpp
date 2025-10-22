@@ -4,10 +4,13 @@
 #include "./vk/Command.hpp"
 #include "./vk/Swapchain.hpp"
 #include "./vk/PipelineFactory.hpp"
+#include "./vk/Buffer.hpp"
+#include "renderer/ViewObject.hpp"
 #include "AssetManager.hpp"
 #include "logging.hpp"
 
 #include <GLFW/glfw3.h>
+#include <vector>
 
 
 class Renderer {
@@ -15,10 +18,14 @@ public:
     Renderer(GLFWwindow* window, const AssetManager& assets);
     ~Renderer();
 
+    void add(ViewObject* obj);
     void present();
 
 private:
     const AssetManager& assets;
+
+    std::vector<ViewObject*> scene;
+    Buffer* vertexBuffer;
 
     Instance* instance;
     Device* device;

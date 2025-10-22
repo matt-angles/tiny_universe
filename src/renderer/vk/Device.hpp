@@ -16,6 +16,8 @@ public:
     uint32_t version() const { return profile.properties.properties.apiVersion; }
     bool has_extension (const char* name) const;
 
+    uint32_t get_memory_index(VkMemoryPropertyFlags type, uint32_t typeFilter);
+
     enum class QueueFamily { GRAPHICS, PRESENT };
     uint32_t get_queue_family(QueueFamily type) const 
     {
@@ -47,6 +49,7 @@ private:
         VkPhysicalDevice handle;
         VkPhysicalDeviceProperties2 properties;
         VkPhysicalDeviceFeatures2 features;
+        VkPhysicalDeviceMemoryProperties2 meminfo;
         uint32_t qFamilyGraphics = UINT32_MAX;
         uint32_t qFamilyPresent  = UINT32_MAX;
 

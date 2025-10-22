@@ -72,6 +72,10 @@ void Device::fill_profile(DeviceProfile& profile, VkPhysicalDevice device)
     features3->pNext = features4;
     profile.features = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2, features3, {}};
 
+    profile.meminfo.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_PROPERTIES_2;
+    profile.meminfo.pNext = nullptr;
+    vkGetPhysicalDeviceMemoryProperties2(device, &profile.meminfo);
+
     uint32_t nQueueFamilies;
     vkGetPhysicalDeviceQueueFamilyProperties2(device, &nQueueFamilies, nullptr);
     VkQueueFamilyProperties2 queueFamilies[nQueueFamilies];
@@ -224,4 +228,13 @@ bool Device::has_extension(const char* name) const
         if (!strcmp(extensions[i], name))
             return true;
     return false;
+}
+
+uint32_t Device::get_memory_index(VkMemoryPropertyFlags type, uint32_t typeFilter)
+{
+    VkPhysicalDeviceMemoryProperties& prop = profile.meminfo.memoryProperties;
+    for (uint32_t i=0; i < prop.memoryTypeCount; i++)
+        if ((typeFilter & (1<<i)) && (prop.memoryTypes[i].propertyFlags & type))
+            return i;
+    throw std::runtime_error("vulkan: no suitable memory type found");
 }

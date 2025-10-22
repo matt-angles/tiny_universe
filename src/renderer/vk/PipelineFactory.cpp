@@ -1,4 +1,5 @@
 #include "./PipelineFactory.hpp"
+#include "game/Object.hpp"
 
 
 PipelineFactory::PipelineFactory(Swapchain* swapchain, const ShaderAsset* vertexShader)
@@ -23,10 +24,19 @@ PipelineFactory::PipelineFactory(Swapchain* swapchain, const ShaderAsset* vertex
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
-        .vertexBindingDescriptionCount = 0,
-        .pVertexBindingDescriptions    = nullptr,
-        .vertexAttributeDescriptionCount = 0,
-        .pVertexAttributeDescriptions    = nullptr
+        .vertexBindingDescriptionCount = 1,
+        .pVertexBindingDescriptions    = new VkVertexInputBindingDescription {
+            .binding = 0,
+            .stride = sizeof(Vector2D),
+            .inputRate = VK_VERTEX_INPUT_RATE_VERTEX
+        },
+        .vertexAttributeDescriptionCount = 1,
+        .pVertexAttributeDescriptions    = new VkVertexInputAttributeDescription {
+            .location = 0,
+            .binding = 0,
+            .format = VK_FORMAT_R32G32_SINT,    // describes a glm::ivec2
+            .offset = 0
+        }
     };
 
     cfg->pInputAssemblyState = new VkPipelineInputAssemblyStateCreateInfo {
@@ -166,6 +176,8 @@ PipelineFactory::~PipelineFactory()
     delete cfg->pRasterizationState;
     delete cfg->pViewportState;
     delete cfg->pInputAssemblyState;
+    delete cfg->pVertexInputState->pVertexAttributeDescriptions;
+    delete cfg->pVertexInputState->pVertexBindingDescriptions;
     delete cfg->pVertexInputState;
     vk_free_chain((void*) cfg->pNext);
     delete cfg;

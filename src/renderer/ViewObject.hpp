@@ -1,12 +1,15 @@
 #pragma once
-#include "game/Object.hpp"
+#include "./Mesh.hpp"
+#include <memory>
 
-
-class Shape {};     // abstract
-class Material {};  // abstract
 
 class ViewObject : public Object {
+public:
+    ViewObject(const Mesh& mesh)
+      : mesh(mesh.clone()) {}
+
+    Mesh* get_mesh() const { return mesh.get(); }
+
 private:
-    Shape shape;
-    Material material;
+    std::unique_ptr<Mesh> mesh;
 };
