@@ -9,7 +9,8 @@ public:
 
 private:
     friend class Renderer;
-    virtual uint32_t fill_bufs(Vector2D*& buf) = 0;
+    virtual void fill_bufs(Vector2D* vertBuf,  size_t& iVert, 
+                           uint16_t* indexBuf, size_t& iIndex) = 0;
 };
 
 
@@ -18,7 +19,8 @@ public:
     Triangle(Vector2D a, Vector2D b, Vector2D c);
     std::unique_ptr<Mesh> clone() const override;
 
-    uint32_t fill_bufs(Vector2D*& buf) override;
+    void fill_bufs(Vector2D* vertBuf,  size_t& iVert, 
+                   uint16_t* indexBuf, size_t& iIndex) override;
 
 private:
     Vector2D a;

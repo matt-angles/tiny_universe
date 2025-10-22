@@ -8,8 +8,11 @@ std::unique_ptr<Mesh> Triangle::clone() const
     return std::make_unique<Triangle>(*this);
 }
 
-uint32_t Triangle::fill_bufs(Vector2D*& buf)
+void Triangle::fill_bufs(Vector2D* vertBuf,  size_t& iVert, 
+                         uint16_t* indexBuf, size_t& iIndex)
 {
-    *buf++ = a; *buf++ = b; *buf++ = c;
-    return 3;
+    
+    indexBuf[iIndex++] = iVert; vertBuf[iVert++] = a;
+    indexBuf[iIndex++] = iVert; vertBuf[iVert++] = b;
+    indexBuf[iIndex++] = iVert; vertBuf[iVert++] = c;
 }

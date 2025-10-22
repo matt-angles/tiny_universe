@@ -39,12 +39,14 @@ Renderer::Renderer(GLFWwindow* window, const AssetManager& assets)
     vkCreateFence(device->get(), &fenceInfo, nullptr, &sigImageRendered);
 
     vertexBuffer = new Buffer(device, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, sizeof(Vector2D)*25);
+    indexBuffer  = new Buffer(device, VK_BUFFER_USAGE_INDEX_BUFFER_BIT,  sizeof(uint16_t)*50);
 }
 
 Renderer::~Renderer()
 {
     vkDeviceWaitIdle(device->get());
 
+    delete indexBuffer;
     delete vertexBuffer;
 
     for (uint32_t i=0; i < swapchain->get_image_count(); i++)
@@ -115,25 +117,34 @@ void Renderer::present()
     vkCmdSetViewport(cmd, 0, 1, &viewport);
     vkCmdSetScissor(cmd, 0, 1, &scissor);
 
-    Vector2D* vertexBufferPtr = (Vector2D*) vertexBuffer->map();
-    Vector2D* vertexBufferPtrMax = vertexBufferPtr + vertexBuffer->get_size()*sizeof(Vector2D);
-    uint32_t nVertexDrawn = 0;
-    for (ViewObject* obj : scene)
-    {
-        if (vertexBufferPtr >= vertexBufferPtrMax)
-            throw std::runtime_error("vulkan: vertex buffer overflow!");    // TODO: reallocate buffer dynamically
-        nVertexDrawn += obj->get_mesh()->fill_bufs(vertexBufferPtr);
-    }
-    vertexBuffer->unmap();
-
+    uint32_t vertexCount = draw_vertices();
     VkBuffer _buf = vertexBuffer->get();
     VkDeviceSize _offset = 0;
     vkCmdBindVertexBuffers(cmd, 0, 1, &_buf, &_offset);
-    vkCmdDraw(cmd, nVertexDrawn, 1, 0, 0);
+    vkCmdBindIndexBuffer(cmd, indexBuffer->get(), 0, VK_INDEX_TYPE_UINT16);
+    vkCmdDrawIndexed(cmd, vertexCount, 1, 0, 0, 0);
 
     vkCmdEndRendering(cmd);
     swapchain->transition_img(cmd, imageIndex, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
     command->submit(0, sigImageAcquired, sigImageAvailable[imageIndex], sigImageRendered);
     swapchain->present_img(imageIndex, sigImageAvailable[imageIndex]);
+}
+
+uint32_t Renderer::draw_vertices()
+{
+    Vector2D* vertexBufferPtr = (Vector2D*) vertexBuffer->map();
+    uint16_t* indexBufferPtr  = (uint16_t*) indexBuffer->map();
+    size_t iVertex = 0, iIndex = 0;
+
+    for (ViewObject* obj : scene)
+    {
+        if (indexBufferPtr >= indexBufferPtr + indexBuffer->get_size()*sizeof(uint16_t))
+            throw std::runtime_error("vulkan: vertex buffer overflow!");    // TODO: reallocate buffer dynamically
+        obj->get_mesh()->fill_bufs(vertexBufferPtr, iVertex, indexBufferPtr, iIndex);
+    }
+
+    vertexBuffer->unmap();
+    indexBuffer->unmap();
+    return iIndex;
 }

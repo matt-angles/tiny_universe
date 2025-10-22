@@ -22,10 +22,13 @@ public:
     void present();
 
 private:
+    uint32_t draw_vertices();
+
     const AssetManager& assets;
 
     std::vector<ViewObject*> scene;
     Buffer* vertexBuffer;
+    Buffer* indexBuffer;
 
     Instance* instance;
     Device* device;

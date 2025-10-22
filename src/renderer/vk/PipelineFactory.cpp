@@ -66,7 +66,7 @@ PipelineFactory::PipelineFactory(Swapchain* swapchain, const ShaderAsset* vertex
         .depthClampEnable        = VK_FALSE,    // configurable value
         .rasterizerDiscardEnable = VK_FALSE,    // configurable value
         .polygonMode = VK_POLYGON_MODE_FILL,
-        .cullMode  = VK_CULL_MODE_BACK_BIT,     // configurable value
+        .cullMode  = VK_CULL_MODE_NONE,         // configurable value
         .frontFace = VK_FRONT_FACE_CLOCKWISE,   // configurable value
         .depthBiasEnable         = VK_FALSE,
         .depthBiasConstantFactor = 0.0f,
