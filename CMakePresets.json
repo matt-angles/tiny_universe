@@ -1,0 +1,19 @@
+{
+    "version": 9,
+    "configurePresets": [{
+        "name": "clang-x64-debug",
+        "displayName": "x64 Debug (clang)",
+        "description": "Build the project with CLang for debugging",
+        "generator": "Ninja",
+        "binaryDir": "${sourceDir}/build/clang-x64-debug/",
+        "toolchainFile": "$env{VCPKG}/scripts/buildsystems/vcpkg.cmake",
+        "cacheVariables": {
+          "CMAKE_C_COMPILER": "clang",
+          "CMAKE_CXX_COMPILER": "clang++",
+          "CMAKE_BUILD_TYPE": "Release"
+        },
+        "environment": {
+          "VCPKG": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\vcpkg"
+        }
+    }]
+}
