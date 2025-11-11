@@ -101,28 +101,28 @@ AssetManager::AssetManager(const char* baseDir)
 
 ImageAsset AssetManager::get_image(const char* name) const
 {
-    auto path = dir / "assets/images" / name;
+    auto path = dir / "assets" / "images" / name;
     if (!std::filesystem::exists(path) || !std::filesystem::is_regular_file(path))
         throw std::runtime_error("assets: invalid image file \"" + path.string() + "\"");
 
-    return ImageAsset(path.c_str(), name);  // TODO: unportable code!
+    return ImageAsset(reinterpret_cast<const char*>(path.u8string().c_str()), name);
 }
 
 ShaderAsset AssetManager::get_shader(const char* name) const
 {
     auto fullName = name + std::string(".spv");
-    auto path = dir / "shaderc/" / fullName;
+    auto path = dir / "shaderc" / fullName;
     if (!std::filesystem::exists(path) || !std::filesystem::is_regular_file(path))
         throw std::runtime_error("assets: invalid shader file \"" + path.string() + "\"");
 
-    return ShaderAsset(path.c_str(), name); // TODO: unportable code!
+    return ShaderAsset(reinterpret_cast<const char*>(path.u8string().c_str()), name);
 }
 
 
 ImageAsset::ImageAsset(const char* filename, const char* assetName)
   : assetName(assetName)
 {
-    auto file = std::ifstream(filename);
+    auto file = std::ifstream(filename, std::ios::binary);
     if (!file.is_open())
         throw std::runtime_error("failed to open file \"" + std::string(filename) + "\"");
     logger.trace("opened file {}", filename);
@@ -198,7 +198,7 @@ void ImageAsset::read_png(const std::ifstream& file)
 ShaderAsset::ShaderAsset(const char* filename, const char* assetName)
   : assetName(assetName)
 {
-    auto file = std::ifstream(filename, std::ios::ate);
+    auto file = std::ifstream(filename, std::ios::ate|std::ios::binary);
     if (!file.is_open())
         throw std::runtime_error("failed to open file \"" + std::string(filename) + "\"");
     logger.trace("opened file {}", filename);

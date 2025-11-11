@@ -26,6 +26,7 @@ private:
     Renderer* renderer;
 };
 
+// NOTE: assets is initialized before logging, which prevents it from logging properly
 Application::Application()
   : assets(app::workDir)
 {

@@ -27,11 +27,11 @@ set(SOURCE
 add_executable(tiny_universe ${SOURCE})
 
 # TODO: -Wextra and -Werror are not compatible with MSVC
-target_compile_options(tiny_universe PRIVATE -Wall -Wextra -Werror)
+target_compile_options(tiny_universe PRIVATE -Wall -Wextra)
 target_compile_definitions(tiny_universe PRIVATE -DCMAKE_PROJECT_VERSION_MAJOR=${PROJECT_VERSION_MAJOR}
                                                  -DCMAKE_PROJECT_VERSION_MINOR=${PROJECT_VERSION_MINOR})
 target_include_directories(tiny_universe PRIVATE src/)
-target_link_libraries(tiny_universe PRIVATE vulkan glfw glm::glm PNG::PNG spdlog::spdlog)
+target_link_libraries(tiny_universe PRIVATE ${Vulkan_LIBRARIES} glfw glm::glm PNG::PNG spdlog::spdlog)
 
 set(SHADERS
     shader/default.vert.glsl
